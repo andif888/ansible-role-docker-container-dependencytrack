@@ -1,0 +1,53 @@
+---
+- hosts: localhost
+  remote_user: root
+  vars:
+    docker_container_dependencytrack_env:
+      # **DB_URL** is formatted like: <databasetype>://<username>:<password>@<hostname>:<port>/<database>
+      # Other examples are:
+      # - mysql://dependencytrack:password@database:3306/dependencytrack
+      # - sqlite:///data/sqlite.db (NOT RECOMMENDED)
+      # - For details see the official sequelize docs: http://docs.sequelizejs.com/en/v3/
+      CMD_DB_URL: "postgres://{{ docker_container_dependencytrack_database_user }}:{{ docker_container_dependencytrack_database_password }}@database:5432/{{ docker_container_dependencytrack_database_name }}"
+      # **DOMAIN** is the domain under which dependencytrack will be available. Just the (sub)domain, no protocol or paths.
+      # You MUST change this if your instance should be available under another domain than "localhost", otherwise your
+      # instance may be broken.
+      # You can define only ONE domain.
+      CMD_DOMAIN: "localhost"
+      # **PROTOCOL_USESSL** defines if generated links should be HTTPS URLs.
+      # This variable won't activate encryption on the listen port.
+      # Set this to true if your reverse proxy exposes your instance via HTTPS.
+      CMD_PROTOCOL_USESSL: "false"
+      # **HSTS_ENABLE** defines if HSTS headers should be sent. Set this to true if you use HTTPS.
+      CMD_HSTS_ENABLE: "false"
+      # **URL_ADDPORT** defines if generated links should contain the port.
+      # Set this to false if your reverse uses the default ports (443 for HTTPS or 80 for HTTP).
+      CMD_URL_ADDPORT: "true"
+    
+    docker_container_dependencytrack_labels:
+      traefik.enable: "true"
+      traefik.http.routers.dependencytrack.rule: "Host(`{{ docker_container_dependencytrack_name }}.{{ docker_container__base__dns_domain }}`)"
+      traefik.http.routers.dependencytrack.entrypoints: http
+      traefik.http.routers.dependencytrack.service: dependencytrack
+      # traefik.http.routers.dependencytrack.middlewares: https_redirect_permanent@file
+      # HTTPS
+      traefik.http.routers.dependencytrack_ssl.rule: "Host(`{{ docker_container_dependencytrack_name }}.{{ docker_container__base__dns_domain }}`)"
+      traefik.http.routers.dependencytrack_ssl.entrypoints: https
+      traefik.http.routers.dependencytrack_ssl.service: dependencytrack
+      # traefik.http.routers.dependencytrack_ssl.tls: "true"
+      # traefik.http.routers.dependencytrack_ssl.tls.certResolver: le
+      traefik.http.routers.dependencytrack_ssl.tls.options: nosni@file
+      # traefik.http.routers.dependencytrack_ssl.middlewares: "hsts@file"
+      # Service
+      traefik.http.services.dependencytrack.loadbalancer.server.port: "3000"
+
+    docker_container_dependencytrack_networks:
+    - name: "{{ docker_network_dependencytrack_name }}"
+      links:
+        - "{{ docker_container_dependencytrackdb_name }}:database"
+      # - name: "{{ docker_network_traefik_name }}"
+
+    # docker_container_dependencytrack_restic_enable: true
+
+  roles:
+    - ansible-role-docker-container-dependencytrack

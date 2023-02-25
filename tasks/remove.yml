@@ -1,0 +1,27 @@
+---
+- name: remove_docker_container {{ docker_container_dependencytrack_frontend_name }}
+  community.general.docker_container: 
+    name: "{{ docker_container_dependencytrack_frontend_name }}"    
+    container_default_behavior: no_defaults
+    keep_volumes: "{{ docker_container_dependencytrack_frontend_keep_volumes | default('yes') }}"
+    state: absent
+
+- name: remove_docker_container {{ docker_container_dependencytrack_apiserver_name }}
+  community.general.docker_container: 
+    name: "{{ docker_container_dependencytrack_apiserver_name }}"    
+    container_default_behavior: no_defaults
+    keep_volumes: "{{ docker_container_dependencytrack_apiserver_keep_volumes | default('yes') }}"
+    state: absent
+
+- name: remove_docker_container {{ docker_container_dependencytrack_db_name }}
+  community.general.docker_container: 
+    name: "{{ docker_container_dependencytrack_db_name }}"    
+    container_default_behavior: no_defaults
+    keep_volumes: "{{ docker_container_dependencytrack_db_keep_volumes | default('yes') }}"
+    state: absent
+
+- name: remove_docker_network {{ docker_network_dependencytrack_name }}
+  community.general.docker_network:
+    name: "{{ docker_network_dependencytrack_name }}"
+    force: yes
+    state: absent

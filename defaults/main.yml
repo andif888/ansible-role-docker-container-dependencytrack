@@ -1,0 +1,436 @@
+---
+# defaults file for ansible-role-docker-container-dependencytrack
+
+# @var docker_container_dependencytrack_database_name:description: Name of the database.
+docker_container_dependencytrack_database_name: "dtrack"
+
+# @var docker_container_dependencytrack_database_user:description: Name of the database user.
+docker_container_dependencytrack_database_user: "dependencytrack"
+
+# @var docker_container_dependencytrack_database_password:description: Password of the database user.
+docker_container_dependencytrack_database_password: "dependencytracksomethingsecret8888"
+
+# @ docker_container_dependencytrack_api_base_url:description: >
+# The base URL of the API server.
+# NOTE:
+#   * This URL must be reachable by the browsers of your users.
+#   * The frontend container itself does NOT communicate with the API server directly, it just serves static files.
+#   * When deploying to dedicated servers, please use the external IP or domain of the API server.
+# @end
+docker_container_dependencytrack_api_base_url: "http://localhost:8081"
+
+docker_container_dependencytrack_name: "dependencytrack"
+docker_container_dependencytrack_volume_dir: "{{ docker_container__base__volume_dir }}/{{ docker_container_dependencytrack_name }}"
+docker_network_dependencytrack_name: "{{ docker_container_dependencytrack_name }}_backend"
+
+# ------------
+# Docker image
+# ------------
+
+# @var docker_image_dependencytrack_apiserver_name:description: Repository path and tag for the container image.
+docker_image_dependencytrack_apiserver_name: "dependencytrack/apiserver"
+
+# @var docker_image_dependencytrack_apiserver_pull:description: Indicate to always pull the docker image.
+docker_image_dependencytrack_apiserver_pull: false
+
+# ----------------
+# Docker container
+# ----------------
+
+# @var docker_container_dependencytrack_apiserver_name:description: Name for the container
+docker_container_dependencytrack_apiserver_name: "dependencytrack_apiserver"
+
+# @var docker_container_dependencytrack_apiserver_image:description: >
+# Repository path and tag used to create the container.
+# If an image is not found or pull is true, the image will be pulled from the registry.
+# If no tag is included, latest will be used.
+# @end
+docker_container_dependencytrack_apiserver_image: "{{ docker_image_dependencytrack_apiserver_name }}"
+
+# @var docker_container_dependencytrack_apiserver_volume_dir:description: >
+# Volume mount host directory, where Treafik config files are stored.
+# @end
+docker_container_dependencytrack_apiserver_volume_dir: "{{ docker_container__base__volume_dir }}/{{ docker_container_dependencytrack_name }}"
+
+
+# @var docker_container_dependencytrack_apiserver_env:description: >
+# Dictionery of key,value pairs for docker
+# environment variables to configure dependencytrack.
+# @end
+docker_container_dependencytrack_apiserver_env:
+  ALPINE_DATABASE_MODE: "external"
+  ALPINE_DATABASE_URL: "jdbc:postgresql://db:5432/{{ docker_container_dependencytrack_database_name }}"
+  ALPINE_DATABASE_DRIVER: "org.postgresql.Driver"
+  ALPINE_DATABASE_USERNAME: "{{ docker_container_dependencytrack_database_user }}"
+  ALPINE_DATABASE_PASSWORD: "{{ docker_container_dependencytrack_database_password }}"
+
+# @var docker_container_dependencytrack_apiserver_volumes:description: >
+# List of volumes to mount within the container.
+# @end
+docker_container_dependencytrack_apiserver_volumes:
+  - "{{ docker_container_dependencytrack_apiserver_volume_dir }}/data:/data"
+
+# @var docker_container_dependencytrack_apiserver_labels:description: >
+# Dictionary of key value pairs for container labels.
+#
+# Example:
+#
+# ```yaml
+#
+# docker_container_dependencytrack_apiserver_labels:
+#
+#   traefik.enable: "true"
+#
+# ```
+#
+# @end
+docker_container_dependencytrack_apiserver_labels: {}
+
+# @var docker_container_dependencytrack_apiserver_networks:description: >
+# List of networks the container belongs to.
+# @end
+docker_container_dependencytrack_apiserver_networks:
+  - name: "{{ docker_network_dependencytrack_apiserver_name }}"
+    links:
+      - "{{ docker_container_dependencytrack_db_name }}:db"
+
+# @var docker_container_dependencytrack_apiserver_ports:description: >
+# List of ports to publish from the container to the host.
+# @end
+docker_container_dependencytrack_apiserver_ports:
+  - "8081:8080"
+
+# @var docker_container_dependencytrack_apiserver_comparisons:description: >
+# Allows to specify how properties of existing containers are compared with module options 
+# to decide whether the container should be recreated / updated or not.
+# @end
+docker_container_dependencytrack_apiserver_comparisons:
+  image: strict
+  env: strict
+  volumes: strict
+
+# docker_container_dependencytrack_apiserver_auto_remove: no
+# docker_container_dependencytrack_apiserver_detach: yes
+# docker_container_dependencytrack_apiserver_env_file: "{{ docker_container_dependencytrack_apiserver_volume_dir }}/.env"
+# docker_container_dependencytrack_apiserver_init: no
+# docker_container_dependencytrack_apiserver_interactive: no
+# docker_container_dependencytrack_apiserver_keep_volumes: yes
+# docker_container_dependencytrack_apiserver_memory: "0"
+# docker_container_dependencytrack_apiserver_paused: no
+# docker_container_dependencytrack_apiserver_privileged: no
+# docker_container_dependencytrack_apiserver_pull: no
+# docker_container_dependencytrack_apiserver_read_only: no
+# docker_container_dependencytrack_apiserver_recreate: no
+# docker_container_dependencytrack_apiserver_restart: no
+# docker_container_dependencytrack_apiserver_restart_policy: always
+# docker_container_dependencytrack_apiserver_state: started
+# docker_container_dependencytrack_apiserver_tty: no
+# docker_container_dependencytrack_apiserver_networks_cli_compatible: yes
+
+# --------------
+# Docker network
+# --------------
+
+# @var docker_network_dependencytrack_apiserver_name:description: >
+# Name of the docker network created for dependencytrack.
+# @end
+docker_network_dependencytrack_apiserver_name: "{{ docker_container_dependencytrack_name }}_backend"
+# docker_network_dependencytrack_apiserver_driver: bridge
+# docker_network_dependencytrack_apiserver_attachable: yes
+# docker_network_dependencytrack_apiserver_enable_ipv6: no
+# docker_network_dependencytrack_apiserver_internal: no
+
+# -------------
+# Restic Backup
+# -------------
+# @var docker_container_dependencytrack_restic_enable:description: >
+# Enable restic backup for the container's mounted volumes.
+# @end
+docker_container_dependencytrack_restic_enable: false
+
+# @var docker_container_dependencytrack_restic_s3_endpoint:description: >
+# Minio S3 endpoint for restic backup storage.
+#
+# Example:
+#
+# ```yaml
+#
+# docker_container__base__restic_s3_endpoint: "https://minio.{{ dns_domain }}"
+#
+# docker_container_dependencytrack_restic_s3_endpoint: "{{ docker_container__base__restic_s3_endpoint }}"
+#
+# ```
+#
+# @end
+docker_container_dependencytrack_restic_s3_endpoint: "{{ docker_container__base__restic_s3_endpoint }}"
+
+# @var docker_container_dependencytrack_restic_s3_bucket_name:description: >
+# Minio S3 bucket name for restic backup storage.
+# @end
+docker_container_dependencytrack_restic_s3_bucket_name: "restic-{{ docker_container_dependencytrack_name }}"
+
+# @var docker_container_dependencytrack_restic_s3_repo:description: >
+# Minio S3 repo URL for restic backup storage.
+# @end
+docker_container_dependencytrack_restic_s3_repo: "s3:{{ docker_container_dependencytrack_restic_s3_endpoint }}/{{ docker_container_dependencytrack_restic_s3_bucket_name }}"
+
+# @var docker_container_dependencytrack_restic_s3_repo_password:description: >
+# Minio S3 repo password for restic backup storage.
+# @end
+docker_container_dependencytrack_restic_s3_repo_password: "{{ docker_container__base__restic_s3_repo_password }}"
+
+# @var docker_container_dependencytrack_restic_s3_repo_access_key:description: >
+# Minio S3 repo access key for restic backup storage.
+# @end
+docker_container_dependencytrack_restic_s3_repo_access_key: "{{ docker_container__base__restic_s3_repo_access_key }}"
+# @var docker_container_dependencytrack_restic_s3_repo_secret_key:description: >
+# Minio S3 repo secret key for restic backup storage.
+# @end
+docker_container_dependencytrack_restic_s3_repo_secret_key: "{{ docker_container__base__restic_s3_repo_secret_key }}"
+
+# docker_container_dependencytrack_restic_s3_seed_repo: "s3:{{ docker_container__base__restic_s3_seed_endpoint }}/{{ docker_container_dependencytrack_restic_s3_bucket_name }}"
+# docker_container_dependencytrack_restic_s3_seed_repo_password: "{{ docker_container__base__restic_s3_repo_password }}"
+
+# @var docker_container_dependencytrack_restic_retention:description: >
+# Retention settions for `restic forget` after the `restic backup`.
+# @end
+docker_container_dependencytrack_restic_retention:
+  keep_last: 1
+  # keep_hourly: 1
+  keep_daily: 7
+  keep_weekly: 4
+  # keep_monthly: 6
+  # keep_yearly
+
+# @var docker_container_dependencytrack_restic_tag:description: >
+# Tag for the `restic backup` command
+# @end
+docker_container_dependencytrack_restic_tag: "{{ docker_container_dependencytrack_name }}"
+
+
+# ------------
+# Docker image
+# ------------
+
+# @var docker_image_dependencytrack_frontend_name:description: Repository path and tag for the container image.
+docker_image_dependencytrack_frontend_name: "dependencytrack/frontend"
+
+# @var docker_image_dependencytrack_frontend_pull:description: Indicate to always pull the docker image.
+docker_image_dependencytrack_frontend_pull: false
+
+# ----------------
+# Docker container
+# ----------------
+
+# @var docker_container_dependencytrack_frontend_name:description: Name for the container
+docker_container_dependencytrack_frontend_name: "dependencytrack_frontend"
+
+# @var docker_container_dependencytrack_frontend_image:description: >
+# Repository path and tag used to create the container.
+# If an image is not found or pull is true, the image will be pulled from the registry.
+# If no tag is included, latest will be used.
+# @end
+docker_container_dependencytrack_frontend_image: "{{ docker_image_dependencytrack_frontend_name }}"
+
+# @var docker_container_dependencytrack_frontend_volume_dir:description: >
+# Volume mount host directory, where Treafik config files are stored.
+# @end
+docker_container_dependencytrack_frontend_volume_dir: "{{ docker_container__base__volume_dir }}/{{ docker_container_dependencytrack_name }}"
+
+# @var docker_container_dependencytrack_frontend_env:description: >
+# Dictionery of key,value pairs for docker
+# environment variables to configure dependencytrackdb.
+# @end
+docker_container_dependencytrack_frontend_env:
+  API_BASE_URL: "{{ docker_container_dependencytrack_api_base_url }}"
+
+# @var docker_container_dependencytrack_frontend_volumes:description: >
+# List of volumes to mount within the container.
+# @end
+docker_container_dependencytrack_frontend_volumes: []
+
+# @var docker_container_dependencytrack_frontend_labels:description: >
+# Dictionary of key value pairs for container labels.
+#
+# Example:
+#
+# ```yaml
+#
+# docker_container_dependencytrack_frontend_labels:
+#
+#   traefik.enable: "true"
+#
+# ```
+#
+# @end
+docker_container_dependencytrack_frontend_labels: {}
+
+# @var docker_container_dependencytrack_frontend_networks:description: >
+# List of networks the container belongs to.
+# @end
+docker_container_dependencytrack_frontend_networks:
+  - name: "{{ docker_network_dependencytrack_frontend_name }}"
+
+# @var docker_container_dependencytrack_frontend_ports:description: >
+# List of ports to publish from the container to the host.
+# @end
+docker_container_dependencytrack_frontend_ports:
+  - "8080:8080"
+
+# @var docker_container_dependencytrack_frontend_comparisons:description: >
+# Allows to specify how properties of existing containers are compared with module options 
+# to decide whether the container should be recreated / updated or not.
+# @end
+docker_container_dependencytrack_frontend_comparisons:
+  image: strict
+  env: strict
+  volumes: strict
+
+# docker_container_dependencytrack_frontend_auto_remove: no
+# docker_container_dependencytrack_frontend_detach: yes
+# docker_container_dependencytrack_frontend_env_file: "{{ docker_container_dependencytrack_volume_dir }}/.env"
+# docker_container_dependencytrack_frontend_init: no
+# docker_container_dependencytrack_frontend_interactive: no
+# docker_container_dependencytrack_frontend_keep_volumes: yes
+# docker_container_dependencytrack_frontend_memory: "0"
+# docker_container_dependencytrack_frontend_paused: no
+# docker_container_dependencytrack_frontend_privileged: no
+# docker_container_dependencytrack_frontend_pull: no
+# docker_container_dependencytrack_frontend_read_only: no
+# docker_container_dependencytrack_frontend_recreate: no
+# docker_container_dependencytrack_frontend_restart: no
+# docker_container_dependencytrack_frontend_restart_policy: always
+# docker_container_dependencytrack_frontend_state: started
+# docker_container_dependencytrack_frontend_tty: no
+# docker_container_dependencytrack_frontend_networks_cli_compatible: yes
+
+# --------------
+# Docker network
+# --------------
+
+# @var docker_network_dependencytrack_frontend_name:description: >
+# Name of the docker network created for dependencytrack_frontend.
+# @end
+docker_network_dependencytrack_frontend_name: "{{ docker_container_dependencytrack_name }}_backend"
+# docker_network_dependencytrack_frontend_driver: bridge
+# docker_network_dependencytrack_frontend_attachable: yes
+# docker_network_dependencytrack_frontend_enable_ipv6: no
+# docker_network_dependencytrack_frontend_internal: no
+
+
+
+
+
+
+# ------------
+# Docker image
+# ------------
+
+# @var docker_image_dependencytrack_db_name:description: Repository path and tag for the container image.
+docker_image_dependencytrack_db_name: "postgres:14.7-alpine"
+
+# @var docker_image_dependencytrack_db_pull:description: Indicate to always pull the docker image.
+docker_image_dependencytrack_db_pull: false
+
+# ----------------
+# Docker container
+# ----------------
+
+# @var docker_container_dependencytrack_db_name:description: Name for the container
+docker_container_dependencytrack_db_name: "dependencytrack_db"
+
+# @var docker_container_dependencytrack_db_image:description: >
+# Repository path and tag used to create the container.
+# If an image is not found or pull is true, the image will be pulled from the registry.
+# If no tag is included, latest will be used.
+# @end
+docker_container_dependencytrack_db_image: "{{ docker_image_dependencytrack_db_name }}"
+
+# @var docker_container_dependencytrack_db_volume_dir:description: >
+# Volume mount host directory, where Treafik config files are stored.
+# @end
+docker_container_dependencytrack_db_volume_dir: "{{ docker_container__base__volume_dir }}/{{ docker_container_dependencytrack_name }}"
+
+# @var docker_container_dependencytrack_db_env:description: >
+# Dictionery of key,value pairs for docker
+# environment variables to configure dependencytrackdb.
+# @end
+docker_container_dependencytrack_db_env:
+  POSTGRES_USER: "{{ docker_container_dependencytrack_database_user }}"
+  POSTGRES_PASSWORD: "{{ docker_container_dependencytrack_database_password }}"
+  POSTGRES_DB: "{{ docker_container_dependencytrack_database_name }}"
+
+# @var docker_container_dependencytrack_db_volumes:description: >
+# List of volumes to mount within the container.
+# @end
+docker_container_dependencytrack_db_volumes:
+  - "{{ docker_container_dependencytrack_db_volume_dir }}/postgres:/var/lib/postgresql/data"
+
+# @var docker_container_dependencytrack_db_labels:description: >
+# Dictionary of key value pairs for container labels.
+#
+# Example:
+#
+# ```yaml
+#
+# docker_container_dependencytrack_db_labels:
+#
+#   traefik.enable: "true"
+#
+# ```
+#
+# @end
+docker_container_dependencytrack_db_labels: {}
+
+# @var docker_container_dependencytrack_db_networks:description: >
+# List of networks the container belongs to.
+# @end
+docker_container_dependencytrack_db_networks:
+  - name: "{{ docker_network_dependencytrack_db_name }}"
+    aliases: ["{{ docker_container_invoiceninja_db_name }}", "db"]
+
+# @var docker_container_dependencytrack_db_ports:description: >
+# List of ports to publish from the container to the host.
+# @end
+docker_container_dependencytrack_db_ports: []
+
+# @var docker_container_dependencytrack_db_comparisons:description: >
+# Allows to specify how properties of existing containers are compared with module options 
+# to decide whether the container should be recreated / updated or not.
+# @end
+docker_container_dependencytrack_db_comparisons:
+  image: strict
+  env: strict
+  volumes: strict
+
+# docker_container_dependencytrack_db_auto_remove: no
+# docker_container_dependencytrack_db_detach: yes
+# docker_container_dependencytrack_db_env_file: "{{ docker_container_dependencytrack_volume_dir }}/.env"
+# docker_container_dependencytrack_db_init: no
+# docker_container_dependencytrack_db_interactive: no
+# docker_container_dependencytrack_db_keep_volumes: yes
+# docker_container_dependencytrack_db_memory: "0"
+# docker_container_dependencytrack_db_paused: no
+# docker_container_dependencytrack_db_privileged: no
+# docker_container_dependencytrack_db_pull: no
+# docker_container_dependencytrack_db_purge_networks: yes
+# docker_container_dependencytrack_db_read_only: no
+# docker_container_dependencytrack_db_recreate: no
+# docker_container_dependencytrack_db_restart: no
+# docker_container_dependencytrack_db_restart_policy: always
+# docker_container_dependencytrack_db_state: started
+# docker_container_dependencytrack_db_tty: no
+# docker_container_dependencytrack_db_networks_cli_compatible: yes
+
+# --------------
+# Docker network
+# --------------
+
+# @var docker_network_dependencytrack_db_name:description: >
+# Name of the docker network created for dependencytrackdb.
+# @end
+docker_network_dependencytrack_db_name: "{{ docker_container_dependencytrack_name }}_backend"
+# docker_network_dependencytrack_db_driver: bridge
+# docker_network_dependencytrack_db_attachable: yes
+# docker_network_dependencytrack_db_enable_ipv6: no
+# docker_network_dependencytrack_db_internal: no
