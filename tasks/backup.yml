@@ -1,7 +1,7 @@
 ---
-- name: docker_container_info {{ docker_container_dependencytrack_name }}
+- name: docker_container_info {{ docker_container_dependencytrack_apiserver_name }}
   community.docker.docker_container_info:
-    name: "{{ docker_container_dependencytrack_name }}"
+    name: "{{ docker_container_dependencytrack_apiserver_name }}"
   register: docker_container_info_result
 
 # - debug:
