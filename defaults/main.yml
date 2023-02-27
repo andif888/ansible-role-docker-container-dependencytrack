@@ -387,7 +387,7 @@ docker_container_dependencytrack_db_labels: {}
 # @end
 docker_container_dependencytrack_db_networks:
   - name: "{{ docker_network_dependencytrack_db_name }}"
-    aliases: ["{{ docker_container_invoiceninja_db_name }}", "db"]
+    aliases: ["{{ docker_container_dependencytrack_db_name }}", "db"]
 
 # @var docker_container_dependencytrack_db_ports:description: >
 # List of ports to publish from the container to the host.

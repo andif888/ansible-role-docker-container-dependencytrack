@@ -297,7 +297,7 @@ List of networks the container belongs to.
 ```YAML
 docker_container_dependencytrack_db_networks:
   - name: '{{ docker_network_dependencytrack_db_name }}'
-    aliases: ['{{ docker_container_invoiceninja_db_name }}', db]
+    aliases: ['{{ docker_container_dependencytrack_db_name }}', db]
 ```
 
 ### docker_container_dependencytrack_db_ports
